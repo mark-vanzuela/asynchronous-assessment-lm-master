@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 /**
@@ -12,26 +13,47 @@ namespace asynchronous_assessment_lm
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            Coffee cup = PourCoffee();
+            var cup = PourCoffee();
             Console.WriteLine("Coffee is ready");
 
-            Egg eggs = FryEggs(2);
-            Console.WriteLine("Eggs are ready");
+            var eggs = FryEggsAsync(2);
+            var bacons = FryBaconAsync(3);
+            var toast = ToastBreadWithButterAndJamAsync(2);
 
-            Bacon bacon = FryBacon(3);
-            Console.WriteLine("Bacon is ready");
+            var tasks = new List<Task> { eggs, bacons, toast };
+            while (tasks.Count > 0)
+            {
+                Task finishedTask = await Task.WhenAny(tasks);
+                if (finishedTask == eggs)
+                {
+                    Console.WriteLine("eggs are ready");
+                }
+                else if (finishedTask == bacons)
+                {
+                    Console.WriteLine("bacon is ready");
+                }
+                else if (finishedTask == toast)
+                {
+                    Console.WriteLine("toast is ready");
+                }
+                tasks.Remove(finishedTask);
+            }
 
-            Toast toast = ToastBread(2);
-            ApplyButter(toast);
-            ApplyJam(toast);
-            Console.WriteLine("toast is ready");
-
-            Juice orange = PourOJ();
+            var orange = PourOJ();
             Console.WriteLine("Orange juice is ready");
             Console.WriteLine("Breakfast is ready!");
 
+        }
+
+        static async Task<Toast> ToastBreadWithButterAndJamAsync(int number)
+        {
+            var toast = await ToastBreadAsync(number);
+            ApplyButter(toast);
+            ApplyJam(toast);
+
+            return toast;
         }
 
         private static Juice PourOJ()
@@ -46,42 +68,41 @@ namespace asynchronous_assessment_lm
         private static void ApplyButter(Toast toast) =>
             Console.WriteLine("Putting butter on the toast");
 
-        private static Toast ToastBread(int slices)
+        private static async Task<Toast> ToastBreadAsync(int slices)
         {
             for (int slice = 0; slice < slices; slice++)
             {
                 Console.WriteLine("Putting a slice of bread in the toaster");
             }
             Console.WriteLine("Start toasting...");
-            Task.Delay(3000).Wait();
+            await Task.Delay(3000);
             Console.WriteLine("Remove toast from toaster");
 
             return new Toast();
         }
 
-        private static Bacon FryBacon(int slices)
+        private static async Task<Bacon> FryBaconAsync(int slices)
         {
-            Console.WriteLine($"putting {slices} slices of bacon in the pan");
+            Console.WriteLine($"putting {slices} slices of bacon in the bacon pan");
             Console.WriteLine("cooking first side of bacon...");
-            Task.Delay(3000).Wait();
+            await Task.Delay(3000);
             for (int slice = 0; slice < slices; slice++)
             {
                 Console.WriteLine("flipping a slice of bacon");
             }
             Console.WriteLine("cooking the second side of bacon...");
-            Task.Delay(3000).Wait();
-
+            await Task.Delay(3000);
 
             return new Bacon();
         }
 
-        private static Egg FryEggs(int count)
+        private static async Task<Egg> FryEggsAsync(int count)
         {
             Console.WriteLine("Warming the egg pan...");
-            Task.Delay(3000).Wait();
+            await Task.Delay(3000);
             Console.WriteLine($"cracking {count} eggs");
             Console.WriteLine("cooking the eggs ...");
-            Task.Delay(3000).Wait();
+            await Task.Delay(3000);
             Console.WriteLine("Put eggs on plate");
 
             return new Egg();
